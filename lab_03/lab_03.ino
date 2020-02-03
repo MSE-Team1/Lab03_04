@@ -11,6 +11,7 @@
 */
 
 //#define DEBUG_LINE_FOLLOW
+//#define DEBUG_MOTOR_OFFSET
 
 #include <Servo.h>
 #include <EEPROM.h>
@@ -22,17 +23,29 @@
 #include "functions.h"
 
 //variables
-unsigned int ui_Line_Tracker_Mode = 7; //default to start mode
+unsigned int ui_Line_Tracker_Mode = 0;
+unsigned int ui_Course_Stage = 0;
+//COURSE STAGES
+// 0 : straight mode
+// 1 : turn left no line
+// 2 : straight mode
+// 3 : turn right no line
+// 4 : follow curve
 
-//LINE TRACKER MODE MODES
+//LINE TRACKER MODES
 // 0 : go straight with compensation
-// 1 : go left to keep on line
-// 2 : go right to keep on line
-// 3 : end of line, stop
-// 4 : search for line left
-// 5 : search for line right
-// 6 : don't search for line
-// 7 : start mode
+// 1 : go left slow
+// 2 : go left fast
+// 3 : go right slow
+// 4 : go right fast
+// 5 : stop
+
+
+//motor speeds
+unsigned int ui_Motor_Speed_Stop = 200;
+unsigned int ui_Motor_Speed_Fast_Forward = 1900;
+unsigned int ui_Motor_Speed_Medium_Forward = 1650;
+unsigned int ui_Motor_Speed_Slow_Forward = 1500;
 
 //true is right, false is left
 bool b_Turn_History = false;
@@ -185,25 +198,38 @@ void loop()
             possibly encoder counts.
             /*************************************************************************************/
 
-          //determine mode
+          //LINE TRACKER MODES
+          // 0 : go straight with compensation
+          // 1 : go left slow
+          // 2 : go left fast
+          // 3 : go right slow
+          // 4 : go right fast
+          // 5 : stop
+
+          //determine line follow mode
           //0,1,0
           if (!SeesWhite(0) && SeesWhite(1) && !SeesWhite(2)) {
             ui_Line_Tracker_Mode = 0;
           }
-          //1,1,0 or 1,0,0
-          else if ((SeesWhite(0) && SeesWhite(1) && !SeesWhite(2)) || (SeesWhite(0) && !SeesWhite(1) && !SeesWhite(2))) {
+          //1,1,0
+          else if (SeesWhite(0) && SeesWhite(1) && !SeesWhite(2)) {
             ui_Line_Tracker_Mode = 1;
           }
-          //0,1,1 or 0,0,1
-          else if ((!SeesWhite(0) && SeesWhite(1) && SeesWhite(2)) || (!SeesWhite(0) && !SeesWhite(1) && SeesWhite(2))) {
+          //1,0,0
+          else if (SeesWhite(0) && !SeesWhite(1) && !SeesWhite(2)) {
             ui_Line_Tracker_Mode = 2;
           }
-          //1,1,1
-          else if (SeesWhite(0) && SeesWhite(1) && SeesWhite(3)) {
-            //if not in start mode
-            if (ui_Line_Tracker_Mode != 7) {
-              ui_Line_Tracker_Mode = 3;
-            }
+          //0,1,1
+          else if (!SeesWhite(0) && SeesWhite(1) && SeesWhite(2)) {
+            ui_Line_Tracker_Mode = 3;
+          }
+          //0,0,1
+          else if (!SeesWhite(0) && !SeesWhite(1) && SeesWhite(2)) {
+            ui_Line_Tracker_Mode = 4;
+          }
+          //1,1,1 or 0,0,0
+          else if ((SeesWhite(0) && SeesWhite(1) && SeesWhite(3)) || !(SeesWhite(0) && SeesWhite(1) && SeesWhite(3))) {
+            ui_Line_Tracker_Mode = 5;
           }
 
 #ifdef DEBUG_LINE_FOLLOW
@@ -211,30 +237,56 @@ void loop()
           Serial.println(ui_Line_Tracker_Mode);
 #endif
 
-          switch (ui_Line_Tracker_Mode) {
-            //in the middle
+          //stage select
+          switch (ui_Course_Stage) {
             case 0:
-              ui_Left_Motor_Speed = 1600;
-              ui_Right_Motor_Speed = 1600;
-              break;
-            //go to left
-            case 1:
-              ui_Left_Motor_Speed = 1700;
-              ui_Right_Motor_Speed = 1550;
-            case 2:
-              ui_Left_Motor_Speed = 1550;
-              ui_Right_Motor_Speed = 1700;
-              break;
-            case 3:
-              ui_Left_Motor_Speed = 1500;
-              ui_Left_Motor_Speed = 1500;
-              break;
+              switch (ui_Line_Tracker_Mode) {
+                case 0:
+                  ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+                  ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+                  break;
+                case 1:
+                  ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+                  ui_Left_Motor_Speed = ui_Motor_Speed_Slow_Forward;
+                  break;
+                case 2:
+                  ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+                  ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
+                  break;
+                case 3:
+                  ui_Right_Motor_Speed = ui_Motor_Speed_Slow_Forward;
+                  ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+                  break;
+                case 4:
+                  ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
+                  ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+                  break;
+                case 5:
+                  ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
+                  ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
+                  break;
+              }
           }
 
 
 
           //END OF LINE TRACKING CODE
 
+#ifdef DEBUG_MOTOR_OFFSET
+          Serial.print("Left offset: ");
+          Serial.print(ui_Left_Motor_Offset);
+          Serial.print(" Right offset: ");
+          Serial.println(ui_Right_Motor_Offset);
+#endif
+
+          // set motor speeds
+          if (ui_Left_Motor_Speed != ui_Motor_Speed_Stop) {
+            //ui_Left_Motor_Speed = constrain(ui_Left_Motor_Speed + ui_Left_Motor_Offset, 1600, 2100);
+
+          }
+          if (ui_Right_Motor_Speed != ui_Motor_Speed_Stop) {
+            ui_Right_Motor_Speed = constrain(ui_Right_Motor_Speed + ui_Right_Motor_Offset, 1600, 2100);
+          }
           if (bt_Motors_Enabled)
           {
             servo_LeftMotor.writeMicroseconds(ui_Left_Motor_Speed);
@@ -502,35 +554,4 @@ void Ping()
   Serial.print(", cm: ");
   Serial.println(ul_Echo_Time / 58); //divide time by 58 to get distance in cm
 #endif
-}
-
-
-
-//if the line tracker is seeing white
-// left(0), middle(2), right(3)
-bool SeesWhite(unsigned int ui_Line_Tracker) {
-  unsigned int ui_Dark_Calibration_Value[] = {ui_Left_Line_Tracker_Dark, ui_Middle_Line_Tracker_Dark, ui_Right_Line_Tracker_Dark};
-  unsigned int ui_Light_Calibration_Value[] = {ui_Left_Line_Tracker_Light, ui_Middle_Line_Tracker_Light, ui_Right_Line_Tracker_Light};
-  unsigned int ui_Line_Tracker_Data[] = {ui_Left_Line_Tracker_Data, ui_Middle_Line_Tracker_Data, ui_Right_Line_Tracker_Data};
-
-  bool result = false;
-
-  if (ui_Line_Tracker_Data[ui_Line_Tracker] < (ui_Dark_Calibration_Value[ui_Line_Tracker] - ui_Line_Tracker_Tolerance))
-    result = true;
-
-  return result;
-
-
-  /*
-    //unsigned int ui_Threshold[] = (ui_Dark_Calibration_Value[ui_Line_Tracker] + ui_Light_Calibration_Value[ui_Line_Tracker]) / 2; //threshold between light and dark
-    bool b_Result; //if the line tracker sees white
-
-    if (ui_Tracker_Data[ui_Line_Tracker] < (ui_Dark_Calibration_Value[ui_Line_Tracker] - ui_Line_Tracker_Tolerance)) {
-      b_Result = true;
-    }
-    else {
-      b_Result = false;
-    }
-  */
-  return true;
 }
