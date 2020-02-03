@@ -129,3 +129,33 @@ boolean bt_Heartbeat = true;
 boolean bt_3_S_Time_Up = false;
 boolean bt_Do_Once = false;
 boolean bt_Cal_Initialized = false;
+
+//variables
+unsigned int ui_Line_Tracker_Mode = 0;
+unsigned int ui_Course_Stage = 0;
+//COURSE STAGES
+// 0 : straight mode
+// 1 : turn left no line
+// 2 : straight mode
+// 3 : turn right no line
+// 4 : follow curve
+
+//LINE TRACKER MODES
+// 0 : go straight with compensation
+// 1 : go left slow
+// 2 : go left fast
+// 3 : go right slow
+// 4 : go right fast
+// 5 : stop
+
+
+//motor speeds
+unsigned int ui_Motor_Speed_Stop = 200;
+unsigned int ui_Motor_Speed_Fast_Forward = 1900;
+unsigned int ui_Motor_Speed_Medium_Forward = 1650;
+unsigned int ui_Motor_Speed_Slow_Forward = 1500;
+
+//true is right, false is left
+bool b_Turn_History = false;
+bool b_Turn_History_Temp = false;
+unsigned long ul_Turn_History_Timer;

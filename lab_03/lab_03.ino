@@ -22,37 +22,6 @@
 #include "definitions.h"
 #include "functions.h"
 
-//variables
-unsigned int ui_Line_Tracker_Mode = 0;
-unsigned int ui_Course_Stage = 0;
-//COURSE STAGES
-// 0 : straight mode
-// 1 : turn left no line
-// 2 : straight mode
-// 3 : turn right no line
-// 4 : follow curve
-
-//LINE TRACKER MODES
-// 0 : go straight with compensation
-// 1 : go left slow
-// 2 : go left fast
-// 3 : go right slow
-// 4 : go right fast
-// 5 : stop
-
-
-//motor speeds
-unsigned int ui_Motor_Speed_Stop = 200;
-unsigned int ui_Motor_Speed_Fast_Forward = 1900;
-unsigned int ui_Motor_Speed_Medium_Forward = 1650;
-unsigned int ui_Motor_Speed_Slow_Forward = 1500;
-
-//true is right, false is left
-bool b_Turn_History = false;
-bool b_Turn_History_Temp = false;
-unsigned long ul_Turn_History_Timer;
-
-
 
 void setup() {
   Wire.begin();        // Wire library required for I2CEncoder library
@@ -240,32 +209,27 @@ void loop()
           //stage select
           switch (ui_Course_Stage) {
             case 0:
-              switch (ui_Line_Tracker_Mode) {
-                case 0:
-                  ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-                  ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-                  break;
-                case 1:
-                  ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-                  ui_Left_Motor_Speed = ui_Motor_Speed_Slow_Forward;
-                  break;
-                case 2:
-                  ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-                  ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
-                  break;
-                case 3:
-                  ui_Right_Motor_Speed = ui_Motor_Speed_Slow_Forward;
-                  ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-                  break;
-                case 4:
-                  ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
-                  ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-                  break;
-                case 5:
-                  ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
-                  ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
-                  break;
+              GoStraightLine();
+            case 1:
+              //0,0,0
+              if (!SeesWhite(0) || !SeesWhite(1) || !SeesWhite(2)) {
+                //left turn
+                ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+                ui_Left_Motor_Speed = ui_Motor_Speed_Slow_Forward;
               }
+              else {
+                ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
+                ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
+                ui_Course_Stage = 2;
+              }
+              break;
+            case 2:
+              GoStraightLine();
+              break;
+            case 3:
+              ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
+              ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
+              break;
           }
 
 

@@ -12,7 +12,6 @@ bool SeesWhite(unsigned int ui_Line_Tracker) {
 
   return result;
 
-
   /*
     //unsigned int ui_Threshold[] = (ui_Dark_Calibration_Value[ui_Line_Tracker] + ui_Light_Calibration_Value[ui_Line_Tracker]) / 2; //threshold between light and dark
     bool b_Result; //if the line tracker sees white
@@ -25,4 +24,35 @@ bool SeesWhite(unsigned int ui_Line_Tracker) {
     }
   */
   return true;
+}
+
+//follows straight line
+void GoStraightLine() {
+  switch (ui_Line_Tracker_Mode) {
+    case 0:
+      ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+      ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+      break;
+    case 1:
+      ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+      ui_Left_Motor_Speed = ui_Motor_Speed_Slow_Forward;
+      break;
+    case 2:
+      ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+      ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
+      break;
+    case 3:
+      ui_Right_Motor_Speed = ui_Motor_Speed_Slow_Forward;
+      ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+      break;
+    case 4:
+      ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
+      ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+      break;
+    case 5:
+      ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
+      ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
+      //ui_Course_Stage++;
+      break;
+  }
 }
