@@ -19,6 +19,7 @@
 #include <Wire.h>
 #include <I2CEncoder.h>
 #include "definitions.h"
+#include "functions.h"
 
 //variables
 unsigned int ui_Line_Tracker_Mode = 7; //default to start mode
@@ -514,7 +515,7 @@ bool SeesWhite(unsigned int ui_Line_Tracker) {
 
   bool result = false;
 
-  if (ui_Line_Tracker_Data[ui_Line_Tracker] < (ui_Dark_Cailbration_Value[ui_Line_Tracker] - ui_Line_Tracker_Tolerance))
+  if (ui_Line_Tracker_Data[ui_Line_Tracker] < (ui_Dark_Calibration_Value[ui_Line_Tracker] - ui_Line_Tracker_Tolerance))
     result = true;
 
   return result;
