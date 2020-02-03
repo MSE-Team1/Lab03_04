@@ -18,10 +18,10 @@
 #include <CharliePlexM.h>
 #include <Wire.h>
 #include <I2CEncoder.h>
-#include <definitions.h>
+#include "definitions.h"
 
 //variables
-unsigned int ui_Line_Tracker_Mode = 0; //default to zero
+unsigned int ui_Line_Tracker_Mode = 7; //default to start mode
 
 //LINE TRACKER MODE MODES
 // 0 : go straight with compensation
@@ -31,6 +31,7 @@ unsigned int ui_Line_Tracker_Mode = 0; //default to zero
 // 4 : search for line left
 // 5 : search for line right
 // 6 : don't search for line
+// 7 : start mode
 
 //true is right, false is left
 bool b_Turn_History = false;
@@ -174,8 +175,8 @@ void loop()
 #endif
 
           // set motor speeds
-          ui_Left_Motor_Speed = constrain(ui_Motors_Speed + ui_Left_Motor_Offset, 1600, 2100);
-          ui_Right_Motor_Speed = constrain(ui_Motors_Speed + ui_Right_Motor_Offset, 1600, 2100);
+          //ui_Left_Motor_Speed = constrain(ui_Motors_Speed + ui_Left_Motor_Offset, 1600, 2100);
+          //ui_Right_Motor_Speed = constrain(ui_Motors_Speed + ui_Right_Motor_Offset, 1600, 2100);
 
           /***************************************************************************************
             Add line tracking code here.
@@ -198,13 +199,36 @@ void loop()
           }
           //1,1,1
           else if (SeesWhite(0) && SeesWhite(1) && SeesWhite(3)) {
-            ui_Line_Tracker_Mode = 3;
+            //if not in start mode
+            if (ui_Line_Tracker_Mode != 7) {
+              ui_Line_Tracker_Mode = 3;
+            }
           }
 
 #ifdef DEBUG_LINE_FOLLOW
           Serial.print("Line follow mode: ");
           Serial.println(ui_Line_Tracker_Mode);
 #endif
+
+          switch (ui_Line_Tracker_Mode) {
+            //in the middle
+            case 0:
+              ui_Left_Motor_Speed = 1600;
+              ui_Right_Motor_Speed = 1600;
+              break;
+            //go to left
+            case 1:
+              ui_Left_Motor_Speed = 1700;
+              ui_Right_Motor_Speed = 1550;
+            case 2:
+              ui_Left_Motor_Speed = 1550;
+              ui_Right_Motor_Speed = 1700;
+              break;
+            case 3:
+              ui_Left_Motor_Speed = 1500;
+              ui_Left_Motor_Speed = 1500;
+              break;
+          }
 
 
 
@@ -488,15 +512,24 @@ bool SeesWhite(unsigned int ui_Line_Tracker) {
   unsigned int ui_Light_Calibration_Value[] = {ui_Left_Line_Tracker_Light, ui_Middle_Line_Tracker_Light, ui_Right_Line_Tracker_Light};
   unsigned int ui_Line_Tracker_Data[] = {ui_Left_Line_Tracker_Data, ui_Middle_Line_Tracker_Data, ui_Right_Line_Tracker_Data};
 
-  unsigned int ui_Threshold[] = (ui_Dark_Calibration_Value[ui_Line_Tracker] + ui_Light_Calibration_Value[ui_Line_Tracker]) / 2; //threshold between light and dark
-  bool b_Result; //if the line tracker sees white
+  bool result = false;
 
-  if (ui_Line_Tracker_Data[ui_Line_Tracker] >= ui_Threshold) {
-    b_Result = true;
-  }
-  else {
-    b_Result = false;
-  }
+  if (ui_Line_Tracker_Data[ui_Line_Tracker] < (ui_Dark_Cailbration_Value[ui_Line_Tracker] - ui_Line_Tracker_Tolerance))
+    result = true;
 
-  return b_Result;
+  return result;
+
+
+  /*
+    //unsigned int ui_Threshold[] = (ui_Dark_Calibration_Value[ui_Line_Tracker] + ui_Light_Calibration_Value[ui_Line_Tracker]) / 2; //threshold between light and dark
+    bool b_Result; //if the line tracker sees white
+
+    if (ui_Tracker_Data[ui_Line_Tracker] < (ui_Dark_Calibration_Value[ui_Line_Tracker] - ui_Line_Tracker_Tolerance)) {
+      b_Result = true;
+    }
+    else {
+      b_Result = false;
+    }
+  */
+  return true;
 }
