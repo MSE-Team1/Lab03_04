@@ -1,3 +1,6 @@
+#ifndef LAB3_DEFINITIONS_H
+#define LAB3_DEFINITIONS_H
+
 Servo servo_RightMotor;
 Servo servo_LeftMotor;
 Servo servo_ArmMotor;    
@@ -159,3 +162,5 @@ unsigned int ui_Motor_Speed_Slow_Forward = 1500;
 bool b_Turn_History = false;
 bool b_Turn_History_Temp = false;
 unsigned long ul_Turn_History_Timer;
+
+#endif

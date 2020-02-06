@@ -2,11 +2,12 @@
 
   MSE 2202 MSEBot base code for Labs 3 and 4
   Language: Arduino
-  Authors: Michael Naish and Eugen Porter
-  Date: 16/01/17
+  Authors: Michael Naish, Eugen Porter, and Kyle Inzunza
+  Date: 06-02-2020
 
   Rev 1 - Initial version
   Rev 2 - Update for MSEduino v. 2
+  Rev 3 - Added line follow functionality
 
 */
 
@@ -21,6 +22,7 @@
 #include <I2CEncoder.h>
 #include "definitions.h"
 #include "functions.h"
+#include "drive_fun.h"
 
 
 void setup() {
@@ -167,69 +169,34 @@ void loop()
             possibly encoder counts.
             /*************************************************************************************/
 
-          //LINE TRACKER MODES
-          // 0 : go straight with compensation
-          // 1 : go left slow
-          // 2 : go left fast
-          // 3 : go right slow
-          // 4 : go right fast
-          // 5 : stop
-
-          //determine line follow mode
-          //0,1,0
-          if (!SeesWhite(0) && SeesWhite(1) && !SeesWhite(2)) {
-            ui_Line_Tracker_Mode = 0;
-          }
-          //1,1,0
-          else if (SeesWhite(0) && SeesWhite(1) && !SeesWhite(2)) {
-            ui_Line_Tracker_Mode = 1;
-          }
-          //1,0,0
-          else if (SeesWhite(0) && !SeesWhite(1) && !SeesWhite(2)) {
-            ui_Line_Tracker_Mode = 2;
-          }
-          //0,1,1
-          else if (!SeesWhite(0) && SeesWhite(1) && SeesWhite(2)) {
-            ui_Line_Tracker_Mode = 3;
-          }
-          //0,0,1
-          else if (!SeesWhite(0) && !SeesWhite(1) && SeesWhite(2)) {
-            ui_Line_Tracker_Mode = 4;
-          }
-          //1,1,1 or 0,0,0
-          else if ((SeesWhite(0) && SeesWhite(1) && SeesWhite(3)) || !(SeesWhite(0) && SeesWhite(1) && SeesWhite(3))) {
-            ui_Line_Tracker_Mode = 5;
-          }
-
-#ifdef DEBUG_LINE_FOLLOW
-          Serial.print("Line follow mode: ");
-          Serial.println(ui_Line_Tracker_Mode);
-#endif
 
           //stage select
           switch (ui_Course_Stage) {
             case 0:
               GoStraightLine();
             case 1:
-              //0,0,0
-              if (!SeesWhite(0) || !SeesWhite(1) || !SeesWhite(2)) {
-                //left turn
-                ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-                ui_Left_Motor_Speed = ui_Motor_Speed_Slow_Forward;
-              }
-              else {
-                ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
-                ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
-                ui_Course_Stage = 2;
-              }
+              TurnLeftNoLine();
               break;
             case 2:
               GoStraightLine();
               break;
             case 3:
-              ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
-              ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
+              TurnRightNoLine();
               break;
+            case 4:
+              FollowCurveSlow();
+              break;
+            case 5:
+              TurnRightNoLine();
+              break;
+            case 6:
+              GoStraightLine();
+              break;
+            case 7:
+              TurnLeftNoLine();
+            case 8:
+              break;
+
           }
 
 

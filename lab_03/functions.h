@@ -1,3 +1,6 @@
+#ifndef LAB3_FUNCTIONS_H
+#define LAB3_FUNCTIONS_H
+
 //if the line tracker is seeing white
 // left(0), middle(2), right(3)
 bool SeesWhite(unsigned int ui_Line_Tracker) {
@@ -11,48 +14,59 @@ bool SeesWhite(unsigned int ui_Line_Tracker) {
     result = true;
 
   return result;
-
-  /*
-    //unsigned int ui_Threshold[] = (ui_Dark_Calibration_Value[ui_Line_Tracker] + ui_Light_Calibration_Value[ui_Line_Tracker]) / 2; //threshold between light and dark
-    bool b_Result; //if the line tracker sees white
-
-    if (ui_Tracker_Data[ui_Line_Tracker] < (ui_Dark_Calibration_Value[ui_Line_Tracker] - ui_Line_Tracker_Tolerance)) {
-      b_Result = true;
-    }
-    else {
-      b_Result = false;
-    }
-  */
-  return true;
 }
 
-//follows straight line
-void GoStraightLine() {
-  switch (ui_Line_Tracker_Mode) {
-    case 0:
-      ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-      ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-      break;
-    case 1:
-      ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-      ui_Left_Motor_Speed = ui_Motor_Speed_Slow_Forward;
-      break;
-    case 2:
-      ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-      ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
-      break;
-    case 3:
-      ui_Right_Motor_Speed = ui_Motor_Speed_Slow_Forward;
-      ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-      break;
-    case 4:
-      ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
-      ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
-      break;
-    case 5:
-      ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
-      ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
-      //ui_Course_Stage++;
-      break;
+//determine line follow mode
+void LineFollowModeSelect() {
+
+  //LINE TRACKER MODES
+  // 0 : go straight with compensation
+  // 1 : go left slow
+  // 2 : go left fast
+  // 3 : go right slow
+  // 4 : go right fast
+  // 5 : stop
+
+  //0,1,0
+  if (!SeesWhite(0) && SeesWhite(1) && !SeesWhite(2)) {
+    ui_Line_Tracker_Mode = 0;
   }
+  //1,1,0
+  else if (SeesWhite(0) && SeesWhite(1) && !SeesWhite(2)) {
+    ui_Line_Tracker_Mode = 1;
+  }
+  //1,0,0
+  else if (SeesWhite(0) && !SeesWhite(1) && !SeesWhite(2)) {
+    ui_Line_Tracker_Mode = 2;
+  }
+  //0,1,1
+  else if (!SeesWhite(0) && SeesWhite(1) && SeesWhite(2)) {
+    ui_Line_Tracker_Mode = 3;
+  }
+  //0,0,1
+  else if (!SeesWhite(0) && !SeesWhite(1) && SeesWhite(2)) {
+    ui_Line_Tracker_Mode = 4;
+  }
+  //0,0,0
+  else if (!(SeesWhite(0) || SeesWhite(1) || SeesWhite(3))) {
+    ui_Line_Tracker_Mode = 5;
+  }
+  //1,1,1
+  else if (SeesWhite(0) && SeesWhite(1) && SeesWhite(2)){
+    //do nothing
+  }
+  else {
+#ifdef DEBUG_LINE_FOLLOW
+    Serial.println("NO CASE SATISFIED.");
+#endif
+  }
+
+#ifdef DEBUG_LINE_FOLLOW
+  Serial.print("LINE FOLLOW MODE: ");
+  Serial.print(ui_Line_Tracker_Mode);
+  Serial.print(", COURSE MODE:");
+  Serial.println(ui_Course_Stage);
+#endif
 }
+
+#endif
