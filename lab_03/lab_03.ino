@@ -11,8 +11,7 @@
 
 */
 
-//#define DEBUG_LINE_FOLLOW
-//#define DEBUG_MOTOR_OFFSET
+
 
 #include <Servo.h>
 #include <EEPROM.h>
@@ -170,35 +169,42 @@ void loop()
             /*************************************************************************************/
 
 
+          LineFollowModeSelect();
+
           //stage select
           switch (ui_Course_Stage) {
             case 0:
-              GoStraightLine();
+              encoder_LeftMotor.zero();
+              encoder_RightMotor.zero();
+              ui_Course_Stage++;
+              break;
             case 1:
-              TurnLeftNoLine();
+              if (RightMotorEncoderDrive(1000) && LeftMotorEncoderDrive(1000)) {
+                ui_Course_Stage++;
+              }
               break;
             case 2:
+              encoder_LeftMotor.zero();
+              encoder_RightMotor.zero();
               GoStraightLine();
               break;
             case 3:
-              TurnRightNoLine();
-              break;
+              if (RightMotorEncoderDrive(1000) && LeftMotorEncoderDrive(1000)) {
+                ui_Course_Stage++;
+              }
             case 4:
-              FollowCurveSlow();
-              break;
-            case 5:
-              TurnRightNoLine();
-              break;
-            case 6:
+              encoder_LeftMotor.zero();
+              encoder_RightMotor.zero();
               GoStraightLine();
               break;
-            case 7:
-              TurnLeftNoLine();
-            case 8:
-              break;
-
+            case 5:
+              if (RightMotorEncoderDrive(1000) && LeftMotorEncoderDrive(1000)) {
+                ui_Course_Stage++;
+              }
+            case 6:
+              ui_Left_Motor_Speed = ci_Motor_Stop;
+              ui_Right_Motor_Speed = ci_Motor_Stop;
           }
-
 
 
           //END OF LINE TRACKING CODE
@@ -216,12 +222,25 @@ void loop()
 
           }
           if (ui_Right_Motor_Speed != ui_Motor_Speed_Stop) {
-            ui_Right_Motor_Speed = constrain(ui_Right_Motor_Speed + ui_Right_Motor_Offset, 1600, 2100);
+            //ui_Right_Motor_Speed = constrain(ui_Right_Motor_Speed + ui_Right_Motor_Offset, 1600, 2100);
           }
           if (bt_Motors_Enabled)
           {
-            servo_LeftMotor.writeMicroseconds(ui_Left_Motor_Speed);
-            servo_RightMotor.writeMicroseconds(ui_Right_Motor_Speed);
+
+            if (ui_Left_Motor_Speed != ci_Left_Motor_Stop) {
+              servo_LeftMotor.writeMicroseconds(ui_Left_Motor_Speed + ui_Left_Motor_Offset);
+            }
+            else {
+              servo_LeftMotor.writeMicroseconds(ci_Left_Motor_Stop);
+            }
+
+            if (ui_Right_Motor_Speed != ci_Right_Motor_Stop) {
+              servo_RightMotor.writeMicroseconds(ui_Right_Motor_Speed + ui_Right_Motor_Offset);
+            }
+            else {
+              servo_RightMotor.writeMicroseconds(ci_Right_Motor_Stop);
+            }
+
           }
           else
           {

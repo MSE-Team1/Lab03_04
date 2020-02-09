@@ -24,7 +24,7 @@ void GoStraightLine() {
       ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
       ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
       break;
-    case 5:
+    case 6:
       ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
       ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
       ui_Course_Stage++;
@@ -64,10 +64,10 @@ void TurnLeftNoLine() {
   }
 }
 
-void FollowCurveSlow(){
+void FollowCurveSlow() {
 
   unsigned int ui_Motor_Speed_Adjustment = 500;
-  
+
   switch (ui_Line_Tracker_Mode) {
     case 0:
       ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
@@ -92,6 +92,9 @@ void FollowCurveSlow(){
     case 5:
       ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
       ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
+    case 6:
+      ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
+      ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
       ui_Course_Stage++;
       break;
   }
@@ -100,17 +103,16 @@ void FollowCurveSlow(){
 //drives a certain amount of rotations
 //returns true if the position is reached
 //encoder must be zeroed in previous stage
-bool LeftMotorEncoderDrive(float f_Rotations){
-  bool b_state;
-  
+bool LeftMotorEncoderDrive(int i_Count) {
+  bool b_State;
+
   //if position has not been reached yet
-  if(encoder_LeftMotor.getPosition() < f_Rotations){
-    ui_Left_Motor_Speed = ui_Motor_Speed_Slow_Forward;
-    b_state = false;
+  if (encoder_LeftMotor.getRawPosition() <= i_Count) {
+    ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
   }
-  else{
-    ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
-    b_state = true;
+  else {
+    ui_Left_Motor_Speed = ci_Left_Motor_Stop;
+    b_State = true;
   }
   return b_State;
 }
@@ -118,17 +120,17 @@ bool LeftMotorEncoderDrive(float f_Rotations){
 //drives a certain amount of rotations
 //returns true if the position is reached
 //encoder must be zeroed in previous stage
-bool RightMotorEncoderDrive(float f_Rotations){
-  bool b_state;
-  
+bool RightMotorEncoderDrive(int i_Count) {
+  bool b_State;
+
   //if position has not been reached yet
-  if(encoder_RightMotor.getPosition() < f_Rotations){
+  if (encoder_RightMotor.getRawPosition() <= i_Count) {
     ui_Right_Motor_Speed = ui_Motor_Speed_Slow_Forward;
-    b_state = false;
+    b_State = false;
   }
-  else{
-    ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
-    b_state = true;
+  else {
+    b_State = true;
+    ui_Right_Motor_Speed = ci_Right_Motor_Stop;
   }
   return b_State;
 }

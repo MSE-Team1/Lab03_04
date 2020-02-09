@@ -14,10 +14,12 @@ I2CEncoder encoder_LeftMotor;
 //#define DEBUG_MODE_DISPLAY
 //#define DEBUG_MOTORS
 //#define DEBUG_LINE_TRACKERS
-//#define DEBUG_ENCODERS
+#define DEBUG_ENCODERS
 //#define DEBUG_ULTRASONIC
 //#define DEBUG_LINE_TRACKER_CALIBRATION
 //#define DEBUG_MOTOR_CALIBRATION
+//#define DEBUG_LINE_FOLLOW
+//#define DEBUG_MOTOR_OFFSET
 
 boolean bt_Motors_Enabled = true;
 
@@ -153,10 +155,10 @@ unsigned int ui_Course_Stage = 0;
 
 
 //motor speeds
-unsigned int ui_Motor_Speed_Stop = 200;
-unsigned int ui_Motor_Speed_Fast_Forward = 1900;
-unsigned int ui_Motor_Speed_Medium_Forward = 1650;
-unsigned int ui_Motor_Speed_Slow_Forward = 1500;
+unsigned int ui_Motor_Speed_Stop = 1500;
+unsigned int ui_Motor_Speed_Fast_Forward = 1600;
+unsigned int ui_Motor_Speed_Medium_Forward = 1600;
+unsigned int ui_Motor_Speed_Slow_Forward = 1550;
 
 //true is right, false is left
 bool b_Turn_History = false;

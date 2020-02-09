@@ -19,14 +19,6 @@ bool SeesWhite(unsigned int ui_Line_Tracker) {
 //determine line follow mode
 void LineFollowModeSelect() {
 
-  //LINE TRACKER MODES
-  // 0 : go straight with compensation
-  // 1 : go left slow
-  // 2 : go left fast
-  // 3 : go right slow
-  // 4 : go right fast
-  // 5 : stop
-
   //0,1,0
   if (!SeesWhite(0) && SeesWhite(1) && !SeesWhite(2)) {
     ui_Line_Tracker_Mode = 0;
@@ -53,7 +45,7 @@ void LineFollowModeSelect() {
   }
   //1,1,1
   else if (SeesWhite(0) && SeesWhite(1) && SeesWhite(2)){
-    //do nothing
+    ui_Line_Tracker_Mode = 6;
   }
   else {
 #ifdef DEBUG_LINE_FOLLOW
