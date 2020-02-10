@@ -156,9 +156,10 @@ unsigned int ui_Course_Stage = 0;
 
 //motor speeds
 unsigned int ui_Motor_Speed_Stop = 1500;
-unsigned int ui_Motor_Speed_Fast_Forward = 1600;
-unsigned int ui_Motor_Speed_Medium_Forward = 1600;
+unsigned int ui_Motor_Speed_Fast_Forward = 1625;
+unsigned int ui_Motor_Speed_Medium_Forward = 1575;
 unsigned int ui_Motor_Speed_Slow_Forward = 1550;
+unsigned int ui_Short_Walk = 300;
 
 //true is right, false is left
 bool b_Turn_History = false;
