@@ -170,7 +170,7 @@ void loop()
 
 
           LineFollowModeSelect();
-
+          /*
           //stage select
           switch (ui_Course_Stage) {
             case 0:
@@ -179,17 +179,21 @@ void loop()
               ui_Course_Stage++;
               break;
             case 1:
-              if (RightMotorEncoderDrive(1000) && LeftMotorEncoderDrive(1000)) {
+              RightMotorEncoderDrive(ui_Short_Walk);
+              LeftMotorEncoderDrive(ui_Short_Walk);
+              if (RightMotorEncoderDrive(ui_Short_Walk) && LeftMotorEncoderDrive(ui_Short_Walk)) {
                 ui_Course_Stage++;
               }
               break;
             case 2:
+              GoStraightLine();
               encoder_LeftMotor.zero();
               encoder_RightMotor.zero();
-              GoStraightLine();
               break;
             case 3:
-              if (RightMotorEncoderDrive(1000) && LeftMotorEncoderDrive(1000)) {
+              RightMotorEncoderDrive(ui_Short_Walk);
+              LeftMotorEncoderDrive(ui_Short_Walk);
+              if (RightMotorEncoderDrive(ui_Short_Walk) && LeftMotorEncoderDrive(ui_Short_Walk)) {
                 ui_Course_Stage++;
               }
             case 4:
@@ -198,13 +202,25 @@ void loop()
               GoStraightLine();
               break;
             case 5:
-              if (RightMotorEncoderDrive(1000) && LeftMotorEncoderDrive(1000)) {
+              RightMotorEncoderDrive(ui_Short_Walk);
+              LeftMotorEncoderDrive(ui_Short_Walk);
+              if (RightMotorEncoderDrive(ui_Short_Walk) && LeftMotorEncoderDrive(ui_Short_Walk)) {
                 ui_Course_Stage++;
               }
+              break;
             case 6:
-              ui_Left_Motor_Speed = ci_Motor_Stop;
-              ui_Right_Motor_Speed = ci_Motor_Stop;
+              encoder_LeftMotor.zero();
+              encoder_RightMotor.zero();
+              GoStraightLine();
+              break;
+            case 7:
+              ui_Left_Motor_Speed = ci_Left_Motor_Stop;
+              ui_Right_Motor_Speed = ci_Right_Motor_Stop;
+              break;
           }
+          */
+
+          GoStraightLine();
 
 
           //END OF LINE TRACKING CODE
@@ -289,6 +305,7 @@ void loop()
             ui_Left_Line_Tracker_Light /= ci_Line_Tracker_Cal_Measures;
             ui_Middle_Line_Tracker_Light /= ci_Line_Tracker_Cal_Measures;
             ui_Right_Line_Tracker_Light /= ci_Line_Tracker_Cal_Measures;
+
 #ifdef DEBUG_LINE_TRACKER_CALIBRATION
             Serial.print("Light Levels: Left = ");
             Serial.print(ui_Left_Line_Tracker_Light, DEC);
@@ -297,6 +314,7 @@ void loop()
             Serial.print(", Right = ");
             Serial.println(ui_Right_Line_Tracker_Light, DEC);
 #endif
+
             EEPROM.write(ci_Left_Line_Tracker_Light_Address_L, lowByte(ui_Left_Line_Tracker_Light));
             EEPROM.write(ci_Left_Line_Tracker_Light_Address_H, highByte(ui_Left_Line_Tracker_Light));
             EEPROM.write(ci_Middle_Line_Tracker_Light_Address_L, lowByte(ui_Middle_Line_Tracker_Light));
