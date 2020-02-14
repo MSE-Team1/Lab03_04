@@ -27,11 +27,12 @@ void GoStraightLine() {
     case 5:
       ui_Right_Motor_Speed = 1500;
       ui_Left_Motor_Speed = 1500;
+      //ui_Course_Stage++;
       break;
     case 6:
       //ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
       //ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
-      ui_Course_Stage++;
+      //ui_Course_Stage++;
       break;
   }
 }
@@ -96,10 +97,11 @@ void FollowCurveSlow() {
     case 5:
       ui_Right_Motor_Speed = 200;
       ui_Left_Motor_Speed = 200;
+      //ui_Course_Stage++;
     case 6:
       //ui_Right_Motor_Speed = ui_Motor_Speed_Stop;
       //ui_Left_Motor_Speed = ui_Motor_Speed_Stop;
-      ui_Course_Stage++;
+      //ui_Course_Stage++;
       break;
   }
 }
@@ -115,7 +117,7 @@ bool LeftMotorEncoderDrive(int i_Count) {
     ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
   }
   else {
-    ui_Left_Motor_Speed = ci_Left_Motor_Stop;
+    ui_Left_Motor_Speed = 200;
     b_State = true;
   }
   return b_State;
@@ -129,14 +131,24 @@ bool RightMotorEncoderDrive(int i_Count) {
 
   //if position has not been reached yet
   if (encoder_RightMotor.getRawPosition() <= i_Count) {
-    ui_Right_Motor_Speed = ui_Motor_Speed_Slow_Forward + 30;
+    ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
     b_State = false;
   }
   else {
     b_State = true;
-    ui_Right_Motor_Speed = ci_Right_Motor_Stop;
+    ui_Right_Motor_Speed = 200;
   }
   return b_State;
+}
+
+void SweepRight() {
+  ui_Right_Motor_Speed = ui_Motor_Speed_Slow_Backward - 60;
+  ui_Left_Motor_Speed = ui_Motor_Speed_Slow_Forward + 45;
+}
+
+void SweepLeft() {
+  ui_Right_Motor_Speed = ui_Motor_Speed_Slow_Forward + 60;
+  ui_Left_Motor_Speed = ui_Motor_Speed_Slow_Backward - 45;
 }
 
 #endif

@@ -16,6 +16,7 @@ bool SeesWhite(unsigned int ui_Line_Tracker) {
   return result;
 }
 
+
 //determine line follow mode
 void LineFollowModeSelect() {
 
@@ -40,8 +41,9 @@ void LineFollowModeSelect() {
     ui_Line_Tracker_Mode = 4;
   }
   //0,0,0
-  else if (!(SeesWhite(0) || SeesWhite(1) || SeesWhite(3))) {
+  else if (!SeesWhite(0) && !SeesWhite(1) && !SeesWhite(2)) {
     ui_Line_Tracker_Mode = 5;
+    ui_Sees_Black_Counter++;
   }
   //1,1,1
   else if (SeesWhite(0) && SeesWhite(1) && SeesWhite(2)){
@@ -53,11 +55,17 @@ void LineFollowModeSelect() {
 #endif
   }
 
+  if(ui_Line_Tracker_Mode != 5){
+    ui_Sees_Black_Counter = 0;
+  }
+
 #ifdef DEBUG_LINE_FOLLOW
   Serial.print("LINE FOLLOW MODE: ");
   Serial.print(ui_Line_Tracker_Mode);
-  Serial.print(", COURSE MODE:");
-  Serial.println(ui_Course_Stage);
+  Serial.print(", COURSE MODE: ");
+  Serial.print(ui_Course_Stage);
+  Serial.print(", SEES BLACK COUNTER: ");
+  Serial.println(ui_Sees_Black_Counter);
 #endif
 }
 

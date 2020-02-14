@@ -19,6 +19,7 @@
 #include <CharliePlexM.h>
 #include <Wire.h>
 #include <I2CEncoder.h>
+#include <SoftwareSerial.h>
 #include "definitions.h"
 #include "functions.h"
 #include "drive_fun.h"
@@ -27,6 +28,7 @@
 void setup() {
   Wire.begin();        // Wire library required for I2CEncoder library
   Serial.begin(9600);
+  mySerial.begin(2400);
 
   CharliePlexM::setBtn(ci_Charlieplex_LED1, ci_Charlieplex_LED2,
                        ci_Charlieplex_LED3, ci_Charlieplex_LED4, ci_Mode_Button);
@@ -93,6 +95,33 @@ void setup() {
 
 void loop()
 {
+
+  bool flag = false;
+  char serial_char;
+  //beacon
+  while (mySerial.available()) {
+    serial_char = mySerial.read();
+#ifdef DEBUG_BEACON_SEARCH
+    //Serial.print("CHARACTER SEEN: ");
+    //Serial.println(serial_char);
+#endif
+    flag = true;
+
+  }
+
+  if (flag) {
+    b_Sees_Beacon = true;
+#ifdef DEBUG_BEACON_SEARCH
+    Serial.println("SEES BEACON");
+#endif
+  }
+  else {
+    b_Sees_Beacon = false;
+#ifdef DEBUG_BEACON_SEARCH
+    Serial.println("DOESN'T SEE BEACON");
+#endif
+  }
+
   if ((millis() - ul_3_Second_timer) > 3000)
   {
     bt_3_S_Time_Up = true;
@@ -167,10 +196,8 @@ void loop()
             Adjust motor speed according to information from line tracking sensors and
             possibly encoder counts.
             /*************************************************************************************/
-
-
           LineFollowModeSelect();
-          /*
+
           //stage select
           switch (ui_Course_Stage) {
             case 0:
@@ -178,50 +205,191 @@ void loop()
               encoder_RightMotor.zero();
               ui_Course_Stage++;
               break;
+
             case 1:
               RightMotorEncoderDrive(ui_Short_Walk);
               LeftMotorEncoderDrive(ui_Short_Walk);
               if (RightMotorEncoderDrive(ui_Short_Walk) && LeftMotorEncoderDrive(ui_Short_Walk)) {
                 ui_Course_Stage++;
+                ui_Right_Motor_Speed = 200;
+                ui_Left_Motor_Speed = 200;
               }
               break;
             case 2:
               GoStraightLine();
-              encoder_LeftMotor.zero();
-              encoder_RightMotor.zero();
+              if (ui_Sees_Black_Counter >= 15) {
+                encoder_LeftMotor.zero();
+                encoder_RightMotor.zero();
+                ui_Course_Stage++;
+              }
               break;
+
             case 3:
               RightMotorEncoderDrive(ui_Short_Walk);
               LeftMotorEncoderDrive(ui_Short_Walk);
               if (RightMotorEncoderDrive(ui_Short_Walk) && LeftMotorEncoderDrive(ui_Short_Walk)) {
                 ui_Course_Stage++;
+                ui_Right_Motor_Speed = 200;
+                ui_Left_Motor_Speed = 200;
               }
-            case 4:
-              encoder_LeftMotor.zero();
-              encoder_RightMotor.zero();
-              GoStraightLine();
               break;
+
+            case 4:
+              if (ui_Line_Tracker_Mode == 5) {
+                ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+                ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+              }
+              else {
+                ui_Course_Stage++;
+                ui_Right_Motor_Speed = 200;
+                ui_Left_Motor_Speed = 200;
+              }
+              break;
+
             case 5:
-              RightMotorEncoderDrive(ui_Short_Walk);
-              LeftMotorEncoderDrive(ui_Short_Walk);
-              if (RightMotorEncoderDrive(ui_Short_Walk) && LeftMotorEncoderDrive(ui_Short_Walk)) {
+              GoStraightLine();
+              if (ui_Sees_Black_Counter >= 15) {
+                encoder_LeftMotor.zero();
+                encoder_RightMotor.zero();
                 ui_Course_Stage++;
               }
               break;
+
             case 6:
-              encoder_LeftMotor.zero();
-              encoder_RightMotor.zero();
-              GoStraightLine();
+              if (millis() - ul_Ultrasonic_Timer >= 100) {
+                Ping();
+                ul_Ultrasonic_Timer = millis();
+              }
+
+              if (ul_Echo_Time / 58 <= 15) {
+                ui_Left_Motor_Speed = ui_Motor_Speed_Slow_Forward;
+                ui_Right_Motor_Speed = ui_Motor_Speed_Slow_Forward;
+              }
+              else {
+                ui_Left_Motor_Speed = 200;
+                ui_Right_Motor_Speed = 200;
+                ui_Course_Stage++;
+                ul_Servo_Wait_Timer = millis();
+              }
               break;
+
             case 7:
-              ui_Left_Motor_Speed = ci_Left_Motor_Stop;
-              ui_Right_Motor_Speed = ci_Right_Motor_Stop;
+              servo_ArmMotor.write((ci_Arm_Servo_Retracted + ci_Arm_Servo_Extended) / 2); //arm halfway up
+              servo_GripMotor.write(ci_Grip_Motor_Open);
+              //wait for servo to get in position
+              if (millis() - ul_Servo_Wait_Timer > 1500) {
+                ui_Course_Stage++;
+                encoder_LeftMotor.zero();
+                encoder_RightMotor.zero();
+              }
+              break;
+
+            case 8:
+              //search for beacon
+              if (!b_Sees_Beacon) {
+                if (b_Sweep_Right) {
+                  SweepRight();
+                  if (encoder_LeftMotor.getRawPosition() >= 500) {
+                    b_Sweep_Right = false;
+                  }
+                }
+                else {
+                  SweepLeft();
+                  if (encoder_RightMotor.getRawPosition() >= 500) {
+                    b_Sweep_Right = true;
+                  }
+                }
+              }
+              else {
+                ui_Course_Stage++;
+                ul_Servo_Wait_Timer = millis();
+              }
+              break;
+
+            case 9:
+              servo_ArmMotor.write(ci_Arm_Servo_Extended);
+              servo_GripMotor.write(ci_Grip_Motor_Open);
+
+              //wait for servo to get in position
+              if (millis() - ul_Servo_Wait_Timer > 1500) {
+                ui_Course_Stage++;
+                ul_Servo_Wait_Timer = millis();
+              }
+              break;
+
+            case 10:
+              servo_GripMotor.write(ci_Grip_Motor_Closed);
+              //wait for servo to get in position
+              if (millis() - ul_Servo_Wait_Timer > 1500) {
+                ui_Course_Stage++;
+                ul_Servo_Wait_Timer = millis();
+              }
+              break;
+
+            case 11:
+              servo_ArmMotor.write(ci_Arm_Servo_Retracted);
+              //wait for servo to get in position
+              if (millis() - ul_Servo_Wait_Timer > 1500) {
+                ui_Course_Stage++;
+
+                //see what direction the robot is facing
+                if (encoder_LeftMotor.getRawPosition() < 0) {
+                  b_Sweep_Right = true;
+                }
+                else {
+                  b_Sweep_Right = false;
+                }
+              }
+              break;
+            case 12:
+              flag = false;
+
+              //return to facing straight
+              if (b_Sweep_Right) {
+                if (encoder_LeftMotor.getRawPosition() < 0) {
+                  SweepRight();
+                }
+                else {
+                  flag = true;
+                }
+              }
+              else {
+                if (encoder_LeftMotor.getRawPosition() > 0) {
+                  SweepRight();
+                }
+                else {
+                  flag = true;
+                }
+              }
+
+              if (flag) {
+                ui_Course_Stage++;
+              }
+            case 13:
+              if (ui_Line_Tracker_Mode == 5) {
+                ui_Right_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+                ui_Left_Motor_Speed = ui_Motor_Speed_Medium_Forward;
+              }
+              else {
+                ui_Course_Stage++;
+                ui_Right_Motor_Speed = 200;
+                ui_Left_Motor_Speed = 200;
+              }
+              break;
+            case 14:
+              GoStraightLine();
+              if (ui_Sees_Black_Counter >= 15) {
+                encoder_LeftMotor.zero();
+                encoder_RightMotor.zero();
+                ui_Course_Stage++;
+              }
               break;
           }
-          */
 
-          GoStraightLine();
-
+#ifdef DEBUG_COURSE_STAGE
+          Serial.print("COURSE STAGE: ");
+          Serial.println(ui_Course_Stage);
+#endif
 
           //END OF LINE TRACKING CODE
 

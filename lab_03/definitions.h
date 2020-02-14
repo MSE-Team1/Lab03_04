@@ -9,17 +9,21 @@ Servo servo_GripMotor;
 I2CEncoder encoder_RightMotor;
 I2CEncoder encoder_LeftMotor;
 
+SoftwareSerial mySerial(A3, 13); // RX, TX
+
 // Uncomment keywords to enable debugging output
 
 //#define DEBUG_MODE_DISPLAY
 //#define DEBUG_MOTORS
 //#define DEBUG_LINE_TRACKERS
-#define DEBUG_ENCODERS
+//#define DEBUG_ENCODERS
 //#define DEBUG_ULTRASONIC
 //#define DEBUG_LINE_TRACKER_CALIBRATION
 //#define DEBUG_MOTOR_CALIBRATION
 //#define DEBUG_LINE_FOLLOW
+//#define DEBUG_COURSE_STAGE
 //#define DEBUG_MOTOR_OFFSET
+//#define DEBUG_BEACON_SEARCH
 
 boolean bt_Motors_Enabled = true;
 
@@ -72,10 +76,10 @@ const int ci_Right_Motor_Offset_Address_H = 15;
 
 const int ci_Left_Motor_Stop = 1500;        // 200 for brake mode; 1500 for stop
 const int ci_Right_Motor_Stop = 1500;
-const int ci_Grip_Motor_Open = 140;         // Experiment to determine appropriate value
+const int ci_Grip_Motor_Open = 166;         // Experiment to determine appropriate value
 const int ci_Grip_Motor_Closed = 90;        //  "
-const int ci_Arm_Servo_Retracted = 55;      //  "
-const int ci_Arm_Servo_Extended = 120;      //  "
+const int ci_Arm_Servo_Retracted = 62;      //  "
+const int ci_Arm_Servo_Extended = 112;      //  "
 const int ci_Display_Time = 500;
 const int ci_Line_Tracker_Calibration_Interval = 100;
 const int ci_Line_Tracker_Cal_Measures = 20;
@@ -138,6 +142,14 @@ boolean bt_Cal_Initialized = false;
 //variables
 unsigned int ui_Line_Tracker_Mode = 0;
 unsigned int ui_Course_Stage = 0;
+
+unsigned long ul_Ultrasonic_Timer = 0;
+unsigned long ul_Servo_Wait_Timer = 0;
+unsigned long ul_Beacon_Timer = 0;
+
+bool b_Sees_Beacon = false;
+bool b_Sweep_Right = false;
+
 //COURSE STAGES
 // 0 : straight mode
 // 1 : turn left no line
@@ -159,7 +171,11 @@ unsigned int ui_Motor_Speed_Stop = 1500;
 unsigned int ui_Motor_Speed_Fast_Forward = 1625;
 unsigned int ui_Motor_Speed_Medium_Forward = 1575;
 unsigned int ui_Motor_Speed_Slow_Forward = 1550;
+unsigned int ui_Motor_Speed_Slow_Backward = 1450;
 unsigned int ui_Short_Walk = 300;
+unsigned int ui_Long_Walk = 2000;
+
+unsigned int ui_Sees_Black_Counter = 0;
 
 //true is right, false is left
 bool b_Turn_History = false;
